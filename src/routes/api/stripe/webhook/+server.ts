@@ -25,13 +25,16 @@ export const POST: RequestHandler = async ({ request }) => {
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
         const customerId = subscription.customer as string;
-        const validStatuses = ['active', 'trialing', 'canceled', 'past_due'] as const;
-        type ValidStatus = typeof validStatuses[number];
-        const status = validStatuses.includes(subscription.status as ValidStatus)
-          ? (subscription.status as ValidStatus)
-          : 'inactive' as const;
-        if (status !== 'inactive') {
-          await updateSubscriptionByCustomer(customerId, { subscriptionStatus: status, subscriptionId: subscription.id });
+        type MappedStatus = 'active' | 'trialing' | 'canceled' | 'past_due';
+        const statusMap: Record<string, MappedStatus> = {
+          active: 'active',
+          trialing: 'trialing',
+          canceled: 'canceled',
+          past_due: 'past_due'
+        };
+        const mappedStatus = statusMap[subscription.status];
+        if (mappedStatus) {
+          await updateSubscriptionByCustomer(customerId, { subscriptionStatus: mappedStatus, subscriptionId: subscription.id });
         }
         break;
       }
