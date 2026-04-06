@@ -1,0 +1,35 @@
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/javascript-node:20
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - JWT_SECRET=dev-secret-change-in-production
+      - STRIPE_SECRET_KEY=sk_test_your_key_here
+      - STRIPE_PRICE_ID=price_your_price_id_here
+      - STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+    depends_on:
+      - elasticsearch
+    networks:
+      - thebrain
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    networks:
+      - thebrain
+
+networks:
+  thebrain:
+
+volumes:
+  esdata:
