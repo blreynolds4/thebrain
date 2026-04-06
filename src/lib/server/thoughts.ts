@@ -13,8 +13,15 @@ function isSafeUrl(rawUrl: string): boolean {
     // Block private IPv4 ranges
     const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
     if (ipv4) {
-      const [, a, b] = ipv4.map(Number);
-      if (a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)) return false;
+      const a = Number(ipv4[1]);
+      const b = Number(ipv4[2]);
+      if (
+        a === 10 ||
+        a === 127 ||
+        (a === 169 && b === 254) ||
+        (a === 172 && b >= 16 && b <= 31) ||
+        (a === 192 && b === 168)
+      ) return false;
     }
     return true;
   } catch {
