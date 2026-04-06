@@ -14,6 +14,9 @@ export interface User {
   id: string;
   username: string;
   passwordHash: string;
+  stripeCustomerId?: string;
+  subscriptionStatus?: 'active' | 'trialing' | 'canceled' | 'past_due' | 'inactive';
+  subscriptionId?: string;
 }
 
 export interface SearchParams {

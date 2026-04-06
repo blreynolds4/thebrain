@@ -2,12 +2,19 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { searchThoughts, createThought, updateThought, deleteThought, getAllTags } from '$lib/server/thoughts';
 import { thoughtSchema } from '$lib/schemas';
-import { verifyToken } from '$lib/server/auth';
+import { verifyToken, getUserById } from '$lib/server/auth';
 
 export const load: PageServerLoad = async ({ url, cookies }) => {
   const token = cookies.get('auth_token');
   const payload = token ? verifyToken(token) : null;
   if (!payload) throw redirect(302, '/login');
+
+  const user = await getUserById(payload.userId);
+  if (!user) throw redirect(302, '/login');
+
+  if (user.subscriptionStatus !== 'active' && user.subscriptionStatus !== 'trialing') {
+    throw redirect(302, '/subscribe');
+  }
 
   const query = url.searchParams.get('q') || '';
   const tagsParam = url.searchParams.get('tags') || '';

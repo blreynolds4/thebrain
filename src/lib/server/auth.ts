@@ -52,8 +52,30 @@ export async function createUser(username: string, password: string): Promise<Us
   await esClient.index({
     index: USERS_INDEX,
     id,
-    document: { username, passwordHash },
+    document: { username, passwordHash, subscriptionStatus: 'inactive' as const },
     refresh: true
   });
-  return { id, username, passwordHash };
+  return { id, username, passwordHash, subscriptionStatus: 'inactive' };
+}
+
+export async function getUserById(id: string): Promise<User | null> {
+  try {
+    const result = await esClient.get({ index: USERS_INDEX, id });
+    return { id: result._id, ...(result._source as Omit<User, 'id'>) };
+  } catch {
+    return null;
+  }
+}
+
+export async function updateUserSubscription(userId: string, updates: {
+  stripeCustomerId?: string;
+  subscriptionStatus?: User['subscriptionStatus'];
+  subscriptionId?: string;
+}): Promise<void> {
+  await esClient.update({
+    index: USERS_INDEX,
+    id: userId,
+    doc: updates,
+    refresh: true
+  });
 }

@@ -36,7 +36,10 @@ export async function ensureIndices() {
       mappings: {
         properties: {
           username: { type: 'keyword' },
-          passwordHash: { type: 'keyword' }
+          passwordHash: { type: 'keyword' },
+          stripeCustomerId: { type: 'keyword' },
+          subscriptionStatus: { type: 'keyword' },
+          subscriptionId: { type: 'keyword' }
         }
       }
     });
