@@ -4,7 +4,13 @@ import { esClient, USERS_INDEX } from './elasticsearch.js';
 import type { User } from '../types.js';
 import { randomUUID } from 'crypto';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-please-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || (() => {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET environment variable must be set in production');
+  }
+  console.warn('[auth] Using default JWT secret — set JWT_SECRET in production');
+  return 'dev-secret-please-change-in-production';
+})();
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12);

@@ -1,8 +1,9 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { getUserByUsername, verifyPassword, createToken, createUser } from '$lib/server/auth';
+import { getUserByUsername, verifyPassword, createToken, createUser, verifyToken } from '$lib/server/auth';
 import { loginSchema, registerSchema } from '$lib/schemas';
-import { verifyToken } from '$lib/server/auth';
+
+const SECURE_COOKIE = process.env.NODE_ENV === 'production';
 
 export const load: PageServerLoad = async ({ cookies }) => {
   const token = cookies.get('auth_token');
@@ -30,7 +31,7 @@ export const actions: Actions = {
     cookies.set('auth_token', token, {
       path: '/',
       httpOnly: true,
-      secure: false,
+      secure: SECURE_COOKIE,
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7
     });
@@ -53,7 +54,7 @@ export const actions: Actions = {
     cookies.set('auth_token', token, {
       path: '/',
       httpOnly: true,
-      secure: false,
+      secure: SECURE_COOKIE,
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7
     });

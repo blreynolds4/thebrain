@@ -2,7 +2,28 @@ import { esClient, THOUGHTS_INDEX } from './elasticsearch.js';
 import type { Thought, SearchParams } from '../types.js';
 import { randomUUID } from 'crypto';
 
+// SSRF protection: only allow public HTTP/HTTPS URLs, block private/internal ranges
+function isSafeUrl(rawUrl: string): boolean {
+  try {
+    const u = new URL(rawUrl);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+    const host = u.hostname;
+    // Block localhost and loopback
+    if (host === 'localhost' || host === '::1') return false;
+    // Block private IPv4 ranges
+    const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+    if (ipv4) {
+      const [, a, b] = ipv4.map(Number);
+      if (a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)) return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function fetchThumbnail(url: string): Promise<string | undefined> {
+  if (!isSafeUrl(url)) return undefined;
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
     const html = await res.text();
